@@ -1,5 +1,5 @@
 """CEO-agent: parses the raw idea, delegates to CMO/CTO/CFO, later synthesizes their outputs."""
-from venv import logger
+
 
 from backend.orchestration.state import AgentState
 from backend.utils.logger import get_logger
@@ -39,16 +39,15 @@ def defend_rebuttal(question: str, original_answer: str, rebuttal: str, narrativ
         f"Investor's pushback: {rebuttal}\n\n"
         "Defend your position with more specifics — 2-3 sentences. Don't just repeat yourself."
     )
-    from backend.models.llm_client import call_llm
     return call_llm(prompt, system="You are the CEO, holding your ground under investor scrutiny.").strip()
 
 def answer_investor_questions(state: AgentState) -> dict:
-    from backend.agents.investor_agent import generate_rebuttal
-
-    questions = state.get("investor_questions", [])
+    questions = state.get("investor_questions", [])[:5]
     narrative = state.get("ceo_narrative", "")
     transcript = []
+    MAX_REBUTTALS = 2
 
+    rebuttal_count = 0
     for q in questions:
         prompt = (
             f"Startup narrative: {narrative}\n\n"
@@ -56,14 +55,15 @@ def answer_investor_questions(state: AgentState) -> dict:
             "Answer as the CEO — confident, specific, 2-3 sentences max."
         )
         answer = call_llm(prompt, system="You are the CEO defending your startup pitch to a skeptical investor.")
-
-        rebuttal = generate_rebuttal(q, answer)
         entry = {"q": q, "a": answer or "No answer generated."}
 
-        if rebuttal and rebuttal != "NO_REBUTTAL":
-            defense = defend_rebuttal(q, answer, rebuttal, narrative)
-            entry["rebuttal"] = rebuttal
-            entry["defense"] = defense
+        if rebuttal_count < MAX_REBUTTALS:
+            rebuttal = generate_rebuttal(q, answer)
+            if rebuttal and rebuttal != "NO_REBUTTAL":          # <-- key line: only add if NOT "NO_REBUTTAL"
+                defense = defend_rebuttal(q, answer, rebuttal, narrative)
+                entry["rebuttal"] = rebuttal
+                entry["defense"] = defense
+                rebuttal_count += 1
 
         transcript.append(entry)
 
