@@ -1,0 +1,28 @@
+{
+  "general": [
+    "What problem are you solving and how big is that problem really?",
+    "Who exactly is your first paying customer?",
+    "What stops a bigger player from copying this in 6 months?",
+    "What's your unfair advantage / moat?",
+    "How do you acquire your first 100 customers?"
+  ],
+  "market": [
+    "How did you calculate your TAM — bottom-up or top-down?",
+    "Who are your top 3 competitors and why will you win?",
+    "Is this market growing or shrinking?"
+  ],
+  "product": [
+    "What's the MVP scope and why did you cut what you cut?",
+    "What's your tech stack and why that choice?",
+    "How do you handle scale if you 10x users overnight?"
+  ],
+  "financial": [
+    "What's your burn rate and runway?",
+    "What are your unit economics — CAC vs LTV?",
+    "How much are you raising and what's it for specifically?"
+  ],
+  "team": [
+    "Why is this team the right team to build this?",
+    "What happens if a co-founder leaves?"
+  ]
+}
