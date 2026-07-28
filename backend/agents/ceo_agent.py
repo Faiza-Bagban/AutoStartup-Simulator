@@ -28,3 +28,19 @@ def synthesize(state: AgentState) -> dict:
     )
     narrative = call_llm(prompt, system="You are a sharp startup CEO writing your own pitch narrative.")
     return {"ceo_narrative": narrative or "Narrative generation failed — check GROQ_API_KEY."}
+
+def answer_investor_questions(state: AgentState) -> dict:
+    questions = state.get("investor_questions", [])
+    narrative = state.get("ceo_narrative", "")
+    transcript = []
+
+    for q in questions:
+        prompt = (
+            f"Startup narrative: {narrative}\n\n"
+            f"Investor question: {q}\n\n"
+            "Answer as the CEO — confident, specific, 2-3 sentences max."
+        )
+        answer = call_llm(prompt, system="You are the CEO defending your startup pitch to a skeptical investor.")
+        transcript.append({"q": q, "a": answer or "No answer generated."})
+
+    return {"investor_transcript": transcript}
