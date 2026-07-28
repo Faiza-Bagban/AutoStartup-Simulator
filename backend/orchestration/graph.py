@@ -1,12 +1,12 @@
 """LangGraph state machine wiring CEO -> [CMO|CTO|CFO stubs] -> CEO synthesize -> Investor."""
 from langgraph.graph import StateGraph, END
 from backend.orchestration.state import AgentState
-from backend.agents.ceo_agent import parse_idea, synthesize
+from backend.agents.ceo_agent import parse_idea, synthesize, answer_investor_questions
 from backend.agents.investor_agent import select_questions, score_pitch
-
 from backend.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 # --- stub nodes until Faiza/Lakshit/Sakshi wire real agents in ---
 def cmo_stub(state: AgentState) -> dict:
@@ -30,6 +30,7 @@ def build_graph():
     graph.add_node("cfo", cfo_stub)
     graph.add_node("synthesize", synthesize)
     graph.add_node("select_questions", select_questions)
+    graph.add_node("answer_questions", answer_investor_questions)
     graph.add_node("score_pitch", score_pitch)
 
     graph.set_entry_point("parse_idea")
@@ -45,7 +46,8 @@ def build_graph():
     graph.add_edge("cfo", "synthesize")
 
     graph.add_edge("synthesize", "select_questions")
-    graph.add_edge("select_questions", "score_pitch")
+    graph.add_edge("select_questions", "answer_questions")
+    graph.add_edge("answer_questions", "score_pitch")
     graph.add_edge("score_pitch", END)
 
     return graph.compile()
