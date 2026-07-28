@@ -1,11 +1,15 @@
 """CEO-agent: parses the raw idea, delegates to CMO/CTO/CFO, later synthesizes their outputs."""
-from backend.orchestration.state import AgentState
+from venv import logger
 
+from backend.orchestration.state import AgentState
+from backend.utils.logger import get_logger
+logger = get_logger(__name__)
 
 def parse_idea(state: AgentState) -> dict:
     idea = state.get("idea", "").strip()
     if not idea:
         return {"errors": state.get("errors", []) + ["No idea provided"], "status": "failed"}
+    logger.info(f"Idea parsed: {state['idea']}")
     return {"idea": idea, "status": "running"}
 
 
@@ -20,4 +24,5 @@ def synthesize(state: AgentState) -> dict:
         f"MVP: {cto.get('mvp_features', 'TBD')}\n"
         f"Funding ask: {cfo.get('funding_ask', 'TBD')}"
     )
+    logger.info("CEO synthesis complete")
     return {"ceo_narrative": narrative}
