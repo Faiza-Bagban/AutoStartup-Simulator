@@ -2,6 +2,7 @@
 import pytest
 from backend.orchestration.graph import build_graph
 from unittest.mock import patch
+import itertools
 
 
 @patch("backend.agents.ceo_agent.call_llm", return_value="Mocked pitch narrative.")
@@ -32,3 +33,29 @@ def test_investor_score_in_valid_range(mock_llm):
     result = app.invoke({"idea": "Subscription box for eco-friendly cleaning products"})
     assert 0 <= result["investor_score"] <= 10
 
+
+@patch("backend.agents.ceo_agent.call_llm")
+@patch("backend.agents.investor_agent.call_llm")
+def test_rebuttal_loop_triggers_and_defends(mock_investor_llm, mock_ceo_llm):
+    # cycle so we never run out regardless of how many questions/rebuttals fire
+    mock_ceo_llm.side_effect = itertools.cycle(["A vague generic answer.", "A sharper, specific defense."])
+    mock_investor_llm.return_value = "That's too vague — give me a number."
+
+    app = build_graph()
+    result = app.invoke({"idea": "AI-powered plant disease detector for farmers"})
+
+    transcript = result["investor_transcript"]
+    assert len(transcript) > 0
+    assert any("rebuttal" in entry for entry in transcript)
+
+@patch("backend.agents.ceo_agent.call_llm")
+@patch("backend.agents.investor_agent.call_llm")
+def test_no_rebuttal_when_answer_strong(mock_investor_llm, mock_ceo_llm):
+    mock_ceo_llm.return_value = "A very specific, strong answer with numbers."
+    mock_investor_llm.return_value = "NO_REBUTTAL"
+
+    app = build_graph()
+    result = app.invoke({"idea": "AI-powered plant disease detector for farmers"})
+
+    transcript = result["investor_transcript"]
+    assert all("rebuttal" not in entry for entry in transcript)
