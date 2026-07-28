@@ -6,19 +6,16 @@ from backend.agents.investor_agent import select_questions, score_pitch
 
 
 # --- stub nodes until Faiza/Lakshit/Sakshi wire real agents in ---
-def cmo_stub(state: AgentState) -> AgentState:
-    state["cmo_output"] = {"tam": "TBD - stub", "competitors": [], "persona": "TBD"}
-    return state
+def cmo_stub(state: AgentState) -> dict:
+    return {"cmo_output": {"tam": "TBD - stub", "competitors": [], "persona": "TBD"}}
 
 
-def cto_stub(state: AgentState) -> AgentState:
-    state["cto_output"] = {"mvp_features": "TBD - stub", "landing_page_url": None}
-    return state
+def cto_stub(state: AgentState) -> dict:
+    return {"cto_output": {"mvp_features": "TBD - stub", "landing_page_url": None}}
 
 
-def cfo_stub(state: AgentState) -> AgentState:
-    state["cfo_output"] = {"funding_ask": "TBD - stub", "revenue_model": "TBD"}
-    return state
+def cfo_stub(state: AgentState) -> dict:
+    return {"cfo_output": {"funding_ask": "TBD - stub", "revenue_model": "TBD"}}
 
 
 def build_graph():
