@@ -3,6 +3,7 @@ import json
 import random
 from pathlib import Path
 from backend.orchestration.state import AgentState
+from backend.tools.idea_classifier import classify_idea
 
 QUESTION_BANK_PATH = Path("data/question_bank.json")
 
@@ -12,21 +13,21 @@ def _load_question_bank() -> dict:
         return json.load(f)
 
 
-def select_questions(state: AgentState, n: int = 5) -> AgentState:
-    """Pick n questions across categories — general always included, rest randomized."""
+def select_questions(state: AgentState, n: int = 5) -> dict:
     bank = _load_question_bank()
-    questions = list(bank.get("general", []))[:2]
+    idea_category = classify_idea(state.get("idea", ""))
 
-    other_categories = [k for k in bank.keys() if k != "general"]
-    for cat in other_categories:
+    questions = list(bank.get("general", []))[:2]
+    category_qs = bank.get(idea_category, [])
+    if category_qs:
+        questions.append(random.choice(category_qs))
+
+    for cat in ["market", "product", "financial"]:
         pool = bank.get(cat, [])
         if pool:
             questions.append(random.choice(pool))
 
-    state["investor_questions"] = questions[:n]
-    state["investor_transcript"] = []
-    return state
-
+    return {"investor_questions": questions[:n], "investor_transcript": [], "idea_category": idea_category}
 
 def score_pitch(state: AgentState) -> AgentState:
     """Stub scorer — replaced with LLM-based scoring in Week 8."""

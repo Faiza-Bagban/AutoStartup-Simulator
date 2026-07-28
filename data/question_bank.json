@@ -24,5 +24,22 @@
   "team": [
     "Why is this team the right team to build this?",
     "What happens if a co-founder leaves?"
-  ]
+  ],
+
+"saas": [
+    "What's your churn rate assumption and why?",
+    "Why not just a plugin for an existing tool instead of a new platform?"
+  ],
+  "marketplace": [
+    "How do you solve the chicken-and-egg problem — supply or demand first?",
+    "What's your take rate and is it sustainable?"
+  ],
+  "mobile_app": [
+    "What's your day-30 retention target?",
+    "Why would this not just be a feature inside a bigger app?"
+  ],
+  "consumer": [
+    "What's your CAC and how does it compare to LTV?",
+    "Why will this not get commoditized by a bigger retailer?"
+  ]  
 }
