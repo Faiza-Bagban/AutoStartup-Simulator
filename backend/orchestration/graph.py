@@ -4,6 +4,9 @@ from backend.orchestration.state import AgentState
 from backend.agents.ceo_agent import parse_idea, synthesize
 from backend.agents.investor_agent import select_questions, score_pitch
 
+from backend.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # --- stub nodes until Faiza/Lakshit/Sakshi wire real agents in ---
 def cmo_stub(state: AgentState) -> dict:
@@ -50,5 +53,7 @@ def build_graph():
 
 if __name__ == "__main__":
     app = build_graph()
+    logger.info("Starting pipeline run...")
     result = app.invoke({"idea": "AI-powered plant disease detector for farmers"})
+    logger.info(f"Pipeline finished with status={result['status']}, score={result.get('investor_score')}")
     print(result)
