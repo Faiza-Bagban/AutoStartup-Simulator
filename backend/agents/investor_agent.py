@@ -39,7 +39,7 @@ def score_pitch(state: AgentState) -> dict:
 
 def generate_rebuttal(question: str, ceo_answer: str) -> str:
     """Investor pushes back once on a weak/vague CEO answer."""
-    from backend.models.llm_client import call_llm
+    
 
     prompt = (
         f"Investor question: {question}\n"
