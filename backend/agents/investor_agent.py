@@ -3,6 +3,7 @@ import json
 import random
 from pathlib import Path
 from backend.orchestration.state import AgentState
+from backend.models.llm_client import call_llm
 from backend.tools.idea_classifier import classify_idea
 
 QUESTION_BANK_PATH = Path("data/question_bank.json")
@@ -29,11 +30,23 @@ def select_questions(state: AgentState, n: int = 5) -> dict:
 
     return {"investor_questions": questions[:n], "investor_transcript": [], "idea_category": idea_category}
 
-def score_pitch(state: AgentState) -> AgentState:
+def score_pitch(state: AgentState) -> dict:
     """Stub scorer — replaced with LLM-based scoring in Week 8."""
     transcript = state.get("investor_transcript", [])
-    # placeholder: score based on how many questions got a non-empty answer
     answered = sum(1 for t in transcript if t.get("a"))
     total = max(len(state.get("investor_questions", [])), 1)
-    state["investor_score"] = round((answered / total) * 10)
-    return state
+    return {"investor_score": round((answered / total) * 10)}
+
+def generate_rebuttal(question: str, ceo_answer: str) -> str:
+    """Investor pushes back once on a weak/vague CEO answer."""
+    from backend.models.llm_client import call_llm
+
+    prompt = (
+        f"Investor question: {question}\n"
+        f"CEO answer: {ceo_answer}\n\n"
+        "As a skeptical investor, write ONE sharp follow-up pushback if the answer was vague, "
+        "generic, or dodged the question. If the answer was genuinely strong and specific, "
+        "respond with exactly: NO_REBUTTAL"
+    )
+    result = call_llm(prompt, system="You are a skeptical VC probing for weaknesses in a pitch.")
+    return result.strip()
