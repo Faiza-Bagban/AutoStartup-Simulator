@@ -6,6 +6,7 @@ import json
 import ollama
 from backend.models.llm_client import call_llm
 from backend.utils.logger import get_logger
+from backend.config import GROQ_MODEL, OLLAMA_MODEL
 
 logger = get_logger(__name__)
 
@@ -23,21 +24,13 @@ class CMOAgent:
             raw = raw.rsplit("```", 1)[0]
         return raw.strip()
 
-    # def _call_local_llm(self, prompt: str, system: str) -> str:
-    #     """Call local Ollama model instead of Groq — for lower-stakes summarization."""
-    #     response = ollama.chat(
-    #         model="qwen2.5:7b-instruct-q4_K_M",
-    #         messages=[
-    #             {"role": "system", "content": system},
-    #             {"role": "user", "content": prompt},
-    #         ],
-    #     )
-    #     return response["message"]["content"].strip()
+    
 
     def _call_local_llm(self, prompt: str, system: str) -> str:
         try:
             response = ollama.chat(
-                model="qwen2.5:7b-instruct-q4_K_M",
+                
+                model=OLLAMA_MODEL,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt},
