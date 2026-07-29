@@ -5,22 +5,48 @@ Owner: Faiza
 import json
 import ollama
 from backend.models.llm_client import call_llm
+from backend.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CMOAgent:
     def __init__(self):
         pass
 
+    @staticmethod
+    def _clean_json(raw: str) -> str:
+        """Strip markdown code fences that LLMs sometimes wrap JSON in."""
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[-1]
+            raw = raw.rsplit("```", 1)[0]
+        return raw.strip()
+
+    # def _call_local_llm(self, prompt: str, system: str) -> str:
+    #     """Call local Ollama model instead of Groq — for lower-stakes summarization."""
+    #     response = ollama.chat(
+    #         model="qwen2.5:7b-instruct-q4_K_M",
+    #         messages=[
+    #             {"role": "system", "content": system},
+    #             {"role": "user", "content": prompt},
+    #         ],
+    #     )
+    #     return response["message"]["content"].strip()
+
     def _call_local_llm(self, prompt: str, system: str) -> str:
-        """Call local Ollama model instead of Groq — for lower-stakes summarization."""
-        response = ollama.chat(
-            model="qwen2.5:7b-instruct-q4_K_M",
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        return response["message"]["content"].strip()
+        try:
+            response = ollama.chat(
+                model="qwen2.5:7b-instruct-q4_K_M",
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            return response["message"]["content"].strip()
+        except Exception as e:
+            logger.error(f"Local LLM call failed: {e}")
+            return ""
 
     def analyze_market(self, idea: str) -> dict:
         """Estimate TAM/SAM/SOM for the given startup idea."""
@@ -31,6 +57,7 @@ class CMOAgent:
             "\"som\": \"...\", \"reasoning\": \"...\"}"
         )
         raw = call_llm(prompt=f"Startup idea: {idea}", system=system, temperature=0.3)
+        raw = self._clean_json(raw)
         try:
             return json.loads(raw)
         except (json.JSONDecodeError, TypeError):
@@ -53,7 +80,7 @@ class CMOAgent:
             "Respond ONLY as JSON list: [{\"name\": \"...\", \"summary\": \"...\"}]"
         )
         raw = call_llm(prompt=raw_context, system=system, temperature=0.3)
-        # raw = self._call_local_llm(prompt=raw_context, system=system)
+        raw = self._clean_json(raw)
         try:
             return json.loads(raw)
         except (json.JSONDecodeError, TypeError):
@@ -69,6 +96,7 @@ class CMOAgent:
         )
         # raw = call_llm(prompt=f"Startup idea: {idea}", system=system, temperature=0.5)
         raw = self._call_local_llm(prompt=f"Startup idea: {idea}", system=system)
+        raw = self._clean_json(raw)
         try:
             return json.loads(raw)
         except (json.JSONDecodeError, TypeError):
