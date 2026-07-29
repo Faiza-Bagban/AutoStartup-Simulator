@@ -69,15 +69,16 @@ class CMOAgent:
         """Search and summarize competitor landscape."""
         from backend.tools.web_search import WebSearchTool
         searcher = WebSearchTool()
-        results = searcher.search(f"competitors for {idea} startup", max_results=5)
+        results = searcher.search(f"top competitors alternatives {idea}", max_results=8)
 
         raw_context = "\n".join(
-            f"- {r.get('title','')}: {r.get('content','')[:300]}" for r in results
+            f"- {r.get('title','')}: {r.get('content','')[:500]}" for r in results
         )
         system = (
-            "You are a market analyst. Given raw search snippets about competitors, "
-            "extract a list of distinct competitor names with a 1-line summary each. "
-            "Respond ONLY as JSON list: [{\"name\": \"...\", \"summary\": \"...\"}]"
+            "You are a market analyst. Extract EVERY distinct competitor "
+            "mentioned in the text below — do not limit yourself to one. "
+            "Respond ONLY as a JSON list, no other text.\n"
+            "Format: [{\"name\": \"...\", \"summary\": \"...\"}]"
         )
         raw = call_llm(prompt=raw_context, system=system, temperature=0.3)
         raw = self._clean_json(raw)
