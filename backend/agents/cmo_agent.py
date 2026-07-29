@@ -3,12 +3,24 @@ CMO Agent - Market Research & GTM Strategy
 Owner: Faiza
 """
 import json
+import ollama
 from backend.models.llm_client import call_llm
 
 
 class CMOAgent:
     def __init__(self):
         pass
+
+    def _call_local_llm(self, prompt: str, system: str) -> str:
+        """Call local Ollama model instead of Groq — for lower-stakes summarization."""
+        response = ollama.chat(
+            model="qwen2.5:7b-instruct-q4_K_M",
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return response["message"]["content"].strip()
 
     def analyze_market(self, idea: str) -> dict:
         """Estimate TAM/SAM/SOM for the given startup idea."""
@@ -24,9 +36,7 @@ class CMOAgent:
         except (json.JSONDecodeError, TypeError):
             return {"tam": "", "sam": "", "som": "", "reasoning": raw}
 
-    # def scan_competitors(self, idea: str) -> list:
-    #     """Search and summarize competitor landscape."""
-    #     raise NotImplementedError
+
 
     def scan_competitors(self, idea: str) -> list:
         """Search and summarize competitor landscape."""
@@ -43,6 +53,7 @@ class CMOAgent:
             "Respond ONLY as JSON list: [{\"name\": \"...\", \"summary\": \"...\"}]"
         )
         raw = call_llm(prompt=raw_context, system=system, temperature=0.3)
+        # raw = self._call_local_llm(prompt=raw_context, system=system)
         try:
             return json.loads(raw)
         except (json.JSONDecodeError, TypeError):
@@ -56,7 +67,8 @@ class CMOAgent:
             "{\"name\": \"...\", \"age_range\": \"...\", \"occupation\": \"...\", "
             "\"pain_points\": [\"...\"], \"motivations\": [\"...\"]}"
         )
-        raw = call_llm(prompt=f"Startup idea: {idea}", system=system, temperature=0.5)
+        # raw = call_llm(prompt=f"Startup idea: {idea}", system=system, temperature=0.5)
+        raw = self._call_local_llm(prompt=f"Startup idea: {idea}", system=system)
         try:
             return json.loads(raw)
         except (json.JSONDecodeError, TypeError):
